@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <style>
+            body {
+                overflow-y: hidden; /* Hide vertical scrollbar */
+                overflow-x: hidden; /* Hide horizontal scrollbar */
+                background-color: rgb(0, 0, 0);
+                }
+        </style>
+        <title>Game Of Life</title>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.11/p5.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/0.5.11/addons/p5.dom.min.js"></script>
+    </head>
+    <body>
+        <script> 
+        window.addEventListener('load', _ => {
+            let audio = [];
+        })
+
+        const listener = arr => {
+            audio = arr;
+        }
+
+        // NOISE DATA
+        /* must be before you register the audio listener */
+        var data = [ ];
+        if( !window.wallpaperRegisterAudioListener ) {
+            var wallpaperAudioInterval = null;
+            window.wallpaperRegisterAudioListener = function( callback ) {
+                if( wallpaperAudioInterval ) {
+                    // clear the older interval 
+                    clearInterval( _wallpaperAudioInterval );
+                    wallpaperAudioInterval = null;
+                }
+
+                // set new interval
+                wallpaperAudioInterval = setInterval( function() {
+                    for( var i = 0; i < 128; i++ ){
+                        var v = Math.random() * 1.5; // real data can be above 1 as well
+                        data[ i ] = v;
+                        data[ i+128 ]= v;
+                    }
+                    callback( data );
+                }, 33 ); // wallpaper engine gives audio data back at about 30fps, so 33ms it is
+            };
+        }
+
+        window.wallpaperRegisterAudioListener(listener);
+        var grid;
+        var next;
+        var squareSize;
+        var gridLength;
+        var gridHeight;
+        var bg;
+        var fg;
+        var lowV;
+        var timer;
+            
+        function setup() {  
+            squareSize = 20;
+            gridLength = 100;
+            gridHeight = 50;
+
+            next = new Array();
+            grid = new Array();
+            createGrid();
+            createCanvas(1920, 1080);
+            noStroke();
+            frameRate(16);
+            bg = color(0, 0, 0);
+            lowV = color(255, 255, 255);
+            fg = color(255, 255, 255);
+            timer = 0;
+        }
+
+        function reset() {
+            next = new Array();
+            grid = new Array();
+            createGrid();
+        }
+
+        function draw() {
+            background(0);
+            generate();
+            bars();
+            if (timer === 2) {
+                var highV = color(random(0, 255), random(0, 255), random(0, 255));
+                fg = lerpColor(lowV, highV, 10 * audio[int((random(0, 127)))]);
+                timer = 0;
+            } else timer++;
+            for (i = 0; i < gridLength; i++) {
+                for (j = 0; j < gridHeight; j++) {
+                    if (grid[i][j] === 1) {
+                        fill(fg);
+                        rect(i * squareSize, j * squareSize, squareSize, squareSize);
+                    } else if (grid[i][j] === 2) {
+                        fill(255, 255, 255);
+                        rect(i * squareSize, j * squareSize, squareSize, squareSize);
+                    }
+                }
+            }
+        }
+
+        function createGrid() {
+            for (i = 0; i < gridLength; i++) {
+                grid[i] = new Array();
+                for (j = 0; j < gridHeight; j++) {
+                    grid[i][j] = 0;
+                }
+                for (k = 0; k < gridHeight - 15; k++) {
+                    if (random() > 0.85) grid[i][k] = 1                                 ;
+                }
+            }
+            for (i = 0; i < gridLength; i++) {
+                next[i] = new Array();
+                for (j = 0; j < gridHeight; j++) {
+                    next[i][j] = 0;
+                }
+            }
+        }
+
+        function mouseDragged() {
+            var x = (int)(mouseX / squareSize);
+            var y = (int)(mouseY / squareSize);
+            grid[x][y] = 1;
+        }
+
+        function generate(){
+            var neighbours;
+            for (i = 1; i < gridLength - 1; i++) {
+                for (j = 1; j < gridHeight - 1; j++) {
+                    neighbours = 0;
+                    if (grid[i-1][j+1] === 1 || (grid[i-1][j+1] === 2 && random(0, 1) > 0.6)) neighbours++;
+                    if (grid[i][j+1] === 1 || (grid[i][j+1] === 2 && random(0, 1) > 0.6)) neighbours++;
+                    if (grid[i+1][j+1] === 1 || (grid[i+1][j+1] === 2 && random(0, 1) > 0.6)) neighbours++;
+                    if (grid[i+1][j] === 1 || (grid[i+1][j] === 2 && random(0, 1) > 0.6)) neighbours++;
+                    if (grid[i-1][j] === 1 || (grid[i-1][j] === 2 && random(0, 1) > 0.6)) neighbours++;
+                    if (grid[i-1][j-1] === 1 || (grid[i-1][j-1] === 2 && random(0, 1) > 0.6)) neighbours++;
+                    if (grid[i][j-1] === 1 || (grid[i][j-1] === 2 && random(0, 1) > 0.6)) neighbours++;
+                    if (grid[i+1][j-1] === 1 || (grid[i+1][j-1] === 2 && random(0, 1) > 0.6)) neighbours++;
+
+                    if (grid[i][j] === 0) {
+                        if (neighbours === 3) next[i][j] = 1;
+                        else next[i][j] = 0;
+                    } else if (grid[i][j] === 1) {
+                        if (neighbours < 2 || neighbours > 3) next[i][j] = 0;
+                        else next[i][j] = 1;
+                    } else if (grid[i][j] === 2) next[i][j] = 0;
+                }
+            }
+            grid = next;
+            next = new Array();
+            for (i = 0; i < gridLength; i++) {
+            next[i] = new Array();
+                for (j = 0; j < gridHeight; j++) {
+                    next[i][j] = 0;
+                }
+            }
+        }
+
+        function bars() {
+            for (i = 0; i < 100; i+=2) {
+                var b = audio[i + 28] * 12;
+                for (j = gridHeight + 100; j > gridHeight - b; j--) {
+                    grid[i][j] = 2;
+                }
+            }
+        }
+        </script>
+    </body>
+</html>

@@ -1,0 +1,7 @@
+{
+    "type": "web",
+    "file": "index.html",
+    "general": {
+        "supportsaudioprocessing": true
+    }
+}
