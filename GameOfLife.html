@@ -59,13 +59,15 @@
             
         function setup() {  
             squareSize = 20;
-            gridLength = 100;
+            //gridLength = 100; // single
+            gridLength = 276; // triple
             gridHeight = 50;
 
             next = new Array();
             grid = new Array();
             createGrid();
-            createCanvas(1920, 1080);
+            //createCanvas(1920, 1080); // single
+            createCanvas(5520, 1080) // triple
             noStroke();
             frameRate(16);
             bg = color(0, 0, 0);
@@ -158,10 +160,20 @@
                 }
             }
         }
+        // Single Bars
+        // function bars() {
+        //     for (i = 0; i < 100; i+=2) {
+        //         var b = audio[i + 28] * 12;
+        //         for (j = gridHeight + 100; j > gridHeight - b; j--) {
+        //             grid[i][j] = 2;
+        //         }
+        //     }
+        // }
 
+        // Triple Bars
         function bars() {
-            for (i = 0; i < 100; i+=2) {
-                var b = audio[i + 28] * 12;
+            for (i = 10; i < 266; i+=2) {
+                var b = audio[int(random(0, 128))] * 12;
                 for (j = gridHeight + 100; j > gridHeight - b; j--) {
                     grid[i][j] = 2;
                 }
